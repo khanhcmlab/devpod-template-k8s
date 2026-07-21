@@ -1,9 +1,9 @@
 # Use Ubuntu 24.04 as the base image
 FROM ubuntu:24.04
 
-ARG DockerUSER=deww
-ARG DockerUID=503
-ARG DockerGID=20
+ARG DockerUSER=vscode
+ARG DockerUID=1000
+ARG DockerGID=1000
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV HOMEBREW_PREFIX="/home/linuxbrew/.linuxbrew"
@@ -28,13 +28,14 @@ RUN apt-get update && apt-get install -y \
 
 USER root
 
-# Create non-root user
+# Create non-root user and workspace directory
 RUN if getent passwd $DockerUID > /dev/null; then userdel -rf $(getent passwd $DockerUID | cut -d ':' -f 1); fi \
     && groupadd --force --gid $DockerGID $DockerUSER \
     && useradd --no-log-init --uid $DockerUID --gid $DockerGID -m $DockerUSER \
     && mkdir -p /etc/sudoers.d/ \
     && echo $DockerUSER ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$DockerUSER \
-    && chmod 0440 /etc/sudoers.d/$DockerUSER
+    && chmod 0440 /etc/sudoers.d/$DockerUSER \
+    && mkdir -p /workspace && chown -R $DockerUSER:$DockerGID /workspace
 
 USER $DockerUSER
 
@@ -44,22 +45,20 @@ RUN echo "Installing Homebrew..." && \
     echo 'eval "$($HOMEBREW_PREFIX/bin/brew shellenv)"' >> \
     /home/${DockerUSER}/.bashrc
 
-
-RUN brew install starship lazygit fzf fd ripgrep tmux btop eza neovim zsh gh azure-cli kubectx python go rust
-
-
-
+# Install developer tools and CLI utilities
+RUN brew install starship lazygit fzf fd ripgrep tmux btop eza neovim zsh gh azure-cli kubectx kubectl helm k9s python go rust
 
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended && \
     git clone https://github.com/zsh-users/zsh-autosuggestions /home/${DockerUSER}/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
     git clone https://github.com/lukechilds/zsh-nvm /home/${DockerUSER}/.oh-my-zsh/custom/plugins/zsh-nvm && \
     echo 'eval "$($HOMEBREW_PREFIX/bin/brew shellenv)"' >> /home/${DockerUSER}/.zshrc
 
-
 # Install NVM, Node.js LTS, and update .zshrc
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && \
     export NVM_DIR="$HOME/.nvm" && \
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
     nvm install --lts
+
+WORKDIR /workspace
 
 CMD [ "zsh" ]

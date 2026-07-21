@@ -1,16 +1,13 @@
-// .devcontainer/devcontainer.json
 {
     "name": "devpod-template-k8s",
     "build": {
-        "dockerfile": "./Dockerfile",
-        "args": {
-            "DockerUSER": "${localEnv:USER}"
-        }
+        "dockerfile": "./Dockerfile"
     },
-    // "forwardPorts": [3333],
     "overrideCommand": true,
-    "workspaceFolder": "/home/${localEnv:USER}/workspace",
-    "remoteUser": "${localEnv:USER}",
+    "workspaceFolder": "/workspace",
+    "remoteUser": "vscode",
+    "initializeCommand": "bash .devcontainer/scripts/initialize-command.sh",
+    "postCreateCommand": "bash .devcontainer/scripts/post-create-command.sh",
     "customizations": {
         "vscode": {
             "settings": {
@@ -46,11 +43,9 @@
                 "[yaml]": {
                     "editor.defaultFormatter": "redhat.vscode-yaml"
                 }
-                // "dotfiles.repository": "https://github.com/dewwripper/dotfiles.git",
-                // "dotfiles.installPath": "/home/${localEnv:USER}/.dotfiles",
-                // "dotfiles.installCommand": "bash .setup.sh"
             },
             "extensions": [
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
                 "HashiCorp.terraform",
                 "AntonKulikov.terraform-ls",
                 "ms-azuretools.vscode-azureterraform",
@@ -60,7 +55,6 @@
                 "tflint.vscode-tflint",
                 "pahud.infracost",
                 "anton.vscode-tfsec",
-                "koch.ad-docker",
                 "eamodio.gitlens",
                 "mhutchie.git-graph",
                 "codezombiech.gitignore",
